@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net.Http.Formatting;
-using System.Net.Http.Headers;
-
-namespace WebApiContrib.Formatting.Siren.Client
+﻿namespace WebApiContrib.Formatting.Siren.Client
 {
+    using System;
+    using System.Net.Http.Formatting;
+    using System.Net.Http.Headers;
+
     public class SirenJsonMediaTypeFormatter : MediaTypeFormatter
     {
         public override bool CanReadType(Type type)

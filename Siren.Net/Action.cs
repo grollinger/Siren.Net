@@ -6,42 +6,57 @@
     using System.Net.Http;
     using System.Net.Http.Headers;
 
+    /// <summary>
+    /// Actions show available behaviors an entity exposes.
+    /// </summary>
     public class Action
     {
         /// <summary>
-        /// 
+        /// Gets a string that identifies the action to be performed.
         /// </summary>
-        /// <remarks>required</remarks>
+        /// <remarks>Required Property.</remarks>
         public string Name { get; private set; }
 
         /// <summary>
-        /// 
+        /// Gets the URI of the action.
         /// </summary>
-        /// <remarks>required</remarks>
+        /// <remarks>Required Property.</remarks>
         public string Href { get; private set; }
 
         /// <summary>
-        /// 
+        /// Gets a descriptive text about the action.
         /// </summary>
-        /// <remarks>optional</remarks>
+        /// <remarks>Optional Property.</remarks>
         public string Title { get; set; }
 
         /// <summary>
-        /// 
+        /// Gets an enumerated attribute mapping to a protocol method. 
+        /// For HTTP, these values may be GET, PUT, POST, DELETE, or PATCH. 
+        /// As new methods are introduced, this list can be extended. 
+        /// If this attribute is omitted, GET should be assumed.
         /// </summary>
-        /// <remarks>optional</remarks>
+        /// <remarks>Optional Property.</remarks>
         public HttpMethod Method { get; set; }  
       
         /// <summary>
-        /// 
+        /// Gets the encoding type for the request. 
+        /// When omitted and the fields attribute exists, the default value is <c>"application/x-www-form-urlencoded"</c>. 
         /// </summary>
-        /// <remarks>optional</remarks>
+        /// <remarks>Optional Property.</remarks>
         public MediaTypeHeaderValue Type { get; set; }
 
         /// <summary>
-        /// 
+        /// Gets a collection of values that describe the nature of an action based on the current representation. 
+        /// Possible values are implementation-dependent and should be documented.
         /// </summary>
-        /// <remarks>optional</remarks>
+        /// <remarks>Optional Property.</remarks>
+        public ICollection<string> Classes { get; set; }
+
+        /// <summary>
+        /// Gets a collection of fields, expressed as an array of objects in JSON Siren such as { "fields" : [{ ... }] }. 
+        /// See <see cref="Field"/>.
+        /// </summary>
+        /// <remarks>Optional Property.</remarks>
         public ICollection<Field> Fields { get; set; }
 
         public Action(
