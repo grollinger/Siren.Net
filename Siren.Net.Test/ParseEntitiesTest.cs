@@ -13,6 +13,63 @@
     public class ParseEntitiesTest
     {
         [Fact]
+        public void Parses_with_embedded_entities()
+        {
+            // Arrange
+            var jsonString =
+                @"{
+                    class: [""person""],
+                    properties: {
+                        name: ""test"",
+                        age: 42
+                    },
+                    links: [
+                        { rel: ""self"", href: ""http://localhost:10/test""},
+                        { rel: ""parent"", href: ""http://localhost:10/testdad""}
+                    ],
+                    entities: [
+                        { 
+                            class: [ ""items"", ""collection"" ], 
+                            rel: [ ""http://x.io/rels/order-items"" ], 
+                            href: ""http://api.x.io/orders/42/items""
+                        },
+                        {
+                            class: [ ""info"", ""customer"" ],
+                            rel: [ ""http://x.io/rels/customer"" ], 
+                            properties: { 
+                                customerId: ""pj123"",
+                                name: ""Peter Joseph""
+                            },
+                            links: [
+                                { rel: [ ""self"" ], href: ""http://api.x.io/customers/pj123"" }
+                            ]
+                        }
+                    ],
+                    actions: [
+                        {
+                            name: ""add-item"",
+                            title: ""Add Item"",
+                            method: ""POST"",
+                            href: ""http://api.x.io/orders/42/items"",
+                            type: ""application/x-www-form-urlencoded"",
+                            fields: [
+                                { name: ""orderNumber"", type: ""hidden"", value: ""42"" },
+                                { name: ""productCode"", type: ""text"" },
+                                { name: ""quantity"", type: ""number"" }
+                            ]
+                        }
+                    ]
+                }";
+
+            // Act
+            var doc = SirenJson.Parse(jsonString);
+
+            // Assert
+            Assert.NotNull(doc);
+            Assert.Equal(2, doc.Entities.Count());
+        }
+
+        [Fact]
         public void Parses_with_embedded_links()
         {
             // Arrange
@@ -34,10 +91,10 @@
             Assert.NotNull(doc);
             Assert.Equal(1, doc.Entities.Count);
             IEmbeddedLink link = doc.Entities
-                .Single(x => x.IsLink())
-                .Select(x => x.AsLink());
+                .Select(x => x.AsLink())
+                .Single(x => x.IsLink());
             Assert.Equal("http://api.x.io/orders/42/items", link.Href.ToString());
-            Assert.Equal("http://x.io/rels/order-items", link.Rel.ToString());            
+            Assert.Contains("http://x.io/rels/order-items", link.Rel);            
         }
 
         [Fact]
@@ -67,9 +124,9 @@
             // Assert
             Assert.NotNull(doc);
             IEmbeddedRepresentation entity = doc.Entities
-                .Single(x => x.IsRepresentation())
-                .Select(x => x.AsRepresentation());
-            Assert.Equal("http://x.io/rels/customer", entity.Rel);
+                .Select(x => x.AsRepresentation())
+                .Single(x => x.IsRepresentation());
+            Assert.Contains("http://x.io/rels/customer", entity.Rel);
             Assert.False(true, "Add more asserts");
         }
 
@@ -79,7 +136,7 @@
             // Arrange
             var anObject = JObject.Parse(
                 @"{
-                    entities: { { href: ""http://api.x.io/orders/42/items"" } }
+                    entities: { test: { href: ""http://api.x.io/orders/42/items"" } }
                 }");
 
             var aString =  JObject.Parse(
@@ -90,17 +147,7 @@
             var aNumber =  JObject.Parse(
                 @"{
                     entities: 42
-                }");
-
-            var noLinkHref = JObject.Parse(
-                @"{                    
-                    entities: [
-                        {
-                            class: [ ""items"", ""collection"" ], 
-                            rel: [ ""http://x.io/rels/order-items"" ]                            
-                        }
-                    ]
-                }");
+                }");            
 
             var noRel = JObject.Parse(
                 @"{                    
@@ -124,7 +171,6 @@
             Assert.Throws<FormatException>(() => SirenJson.ParseEntities(anObject));
             Assert.Throws<FormatException>(() => SirenJson.ParseEntities(aString));
             Assert.Throws<FormatException>(() => SirenJson.ParseEntities(aNumber));
-            Assert.Throws<FormatException>(() => SirenJson.ParseEntities(noLinkHref));
             Assert.Throws<FormatException>(() => SirenJson.ParseEntities(noRel));
         }
 

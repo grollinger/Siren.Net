@@ -52,7 +52,7 @@
         /// 
         /// </summary>
         /// <remarks>required</remarks>
-        string Rel { get; }
+        ICollection<string> Rel { get; }
     }
 
     public interface IEmbeddedLink : IEmbeddedEntity

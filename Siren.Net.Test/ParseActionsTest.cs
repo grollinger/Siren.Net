@@ -40,7 +40,7 @@
             // Assert
             Assert.NotNull(doc);
             var action = doc.Actions.Single();
-            Assert.Equal(HttpMethod.Post, action.Method);            
+            Assert.Equal(HttpMethod.Post, action.Method);
         }
 
         [Fact]
@@ -50,7 +50,8 @@
             var jsonString =
                 @"{                    
                     actions: [
-                        {                            
+                        {  
+                            name: ""get-items"",                          
                             href: ""http://api.x.io/orders/42/items""                            
                         }
                     ]
@@ -73,7 +74,8 @@
             var jsonString =
                 @"{                    
                     actions: [
-                        {                            
+                        {  
+                            name: ""default-test"",                          
                             href: ""http://api.x.io/orders/42/items"",
                             fields: [
                                 { name: ""orderNumber"", type: ""hidden"", value: ""42"" },
@@ -99,20 +101,20 @@
             // Arrange
             var anObject = JObject.Parse(
                 @"{
-                    actions: { { href: ""http://api.x.io/orders/42/items"" } }
+                    actions: { test: { href: ""http://api.x.io/orders/42/items"" } }
                 }");
 
-            var aString =  JObject.Parse(
+            var aString = JObject.Parse(
                 @"{
                     actions: ""person""
                 }");
 
-            var aNumber =  JObject.Parse(
+            var aNumber = JObject.Parse(
                 @"{
                     actions: 42
                 }");
 
-            var noHref =JObject.Parse(
+            var noHref = JObject.Parse(
                 @"{                    
                     actions: [
                         {
@@ -136,6 +138,30 @@
             Assert.Throws<FormatException>(() => SirenJson.ParseActions(aString));
             Assert.Throws<FormatException>(() => SirenJson.ParseActions(aNumber));
             Assert.Throws<FormatException>(() => SirenJson.ParseActions(noHref));
+        }
+
+        [Fact]
+        public void Throws_for_invalid_Fields()
+        {
+            // Arrange
+            var invalidFieldType = JObject.Parse(
+                @"{ name: ""orderNumber"", type: ""hidden"", value: ""42"" }"
+                );
+
+            var anotherObject = JObject.Parse(
+                @"{ 0:{ name: ""orderNumber"", type: ""hidden"", value: ""42"" }}"
+                );
+
+            var aString = JToken.Parse(
+                @"""test"""
+                );
+
+            // Act
+
+            // Assert
+            Assert.Throws<FormatException>(() => SirenJson.ParseField(invalidFieldType));
+            Assert.Throws<FormatException>(() => SirenJson.ParseField(anotherObject));
+            Assert.Throws<FormatException>(() => SirenJson.ParseField(aString));
         }
 
     }

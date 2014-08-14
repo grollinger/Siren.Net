@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+    using Newtonsoft.Json.Serialization;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
@@ -14,93 +14,37 @@ using Newtonsoft.Json.Serialization;
 
     public static class SirenJson
     {
+        public static ISirenEntity Parse(string jsonString)
+        {
+            var jobj = JObject.Parse(jsonString);
+            return ParseDocument(jobj);
+        }
+
         private class ContractResolver : DefaultContractResolver
         {
             public ContractResolver()
             {
 
-            }           
+            }
 
             protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
             {
                 var properties = base.CreateProperties(type, memberSerialization);
-                
-                if(IsSirenEntity(type))
+
+                if (IsSirenEntity(type))
                 {
                     // Map differing property names
                     var classes = properties.Single(x => x.PropertyName == "Classes");
-                    classes.PropertyName = "class";                    
+                    classes.PropertyName = "class";
                 }
 
                 return properties;
             }
         }
 
-        private class HttpMethodJsonConverter : JsonConverter
-        {                
-            public override bool CanConvert(Type objectType)
-            {
-                return objectType == typeof(HttpMethod);
-            }
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-            {
-                return new HttpMethod(reader.Value.ToString());
-            }
-
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                var method = (HttpMethod)value;
-
-                writer.WriteValue(method);
-            }
-        }
-
-        private class UriJsonConverter : JsonConverter
-        {
-            public override bool CanConvert(Type objectType)
-            {
-                return objectType == typeof(Uri);
-            }
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-            {
-                return new Uri(reader.Value.ToString());
-            }
-
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                writer.WriteValue(value.ToString());
-            }
-        }
-
-        private class MediaTypeJsonConverter : JsonConverter
-        {
-            public override bool CanConvert(Type objectType)
-            {
-                return objectType == typeof(MediaTypeHeaderValue);
-            }
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-            {
-                return new MediaTypeHeaderValue(reader.Value.ToString());
-            }
-
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                writer.WriteValue(((MediaTypeHeaderValue)value).MediaType);
-            }
-        }
-
         private static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings()
         {
-            ContractResolver = new ContractResolver(),
-            Converters = new List<JsonConverter>()
-            {
-                new HttpMethodJsonConverter(),
-                new UriJsonConverter(),
-                new MediaTypeJsonConverter()
-            }
+            ContractResolver = new ContractResolver()
         };
 
         private static bool IsSirenEntity(Type type)
@@ -114,9 +58,9 @@ using Newtonsoft.Json.Serialization;
 
         public static ISirenEntity ParseDocument(JObject obj)
         {
-            var document = new DynamicSirenEntity();
+            var document = new SirenEntity();
 
-            document.Title = ParseTitle(obj);
+            document.Title = ParseStringOptional(obj, "title", "An Entitys 'title' must be a string if it exists");
             document.Classes = ParseClasses(obj);
             document.Links = ParseLinks(obj);
             document.Properties = ParseProperties(obj);
@@ -137,9 +81,9 @@ using Newtonsoft.Json.Serialization;
             ICollection<string> result = null;
             var classes = obj["class"];
 
- 	        if(classes != null)
+            if (classes != null)
             {
-                if(classes is JArray)
+                if (classes is JArray)
                 {
                     var classArray = classes as JArray;
 
@@ -165,9 +109,9 @@ using Newtonsoft.Json.Serialization;
             IDictionary<string, object> result = null;
             var properties = obj["properties"];
 
- 	        if(properties != null)
+            if (properties != null)
             {
-                if(properties is JObject)
+                if (properties is JObject)
                 {
                     var propObject = properties as JObject;
 
@@ -196,6 +140,62 @@ using Newtonsoft.Json.Serialization;
             // If no href value exists, the sub-entity is an embedded entity representation that contains all the characteristics of a typical entity. 
             // One difference is that a sub-entity MUST contain a rel attribute to describe its relationship to the parent entity.
             // In JSON Siren, this is represented as an array. Optional.
+
+            ICollection<IEmbeddedEntity> result = null;
+            var entities = obj["entities"];
+
+            if (entities != null)
+            {
+                if (entities is JArray)
+                {
+                    var entityArray = entities as JArray;
+
+                    result = new List<IEmbeddedEntity>(entityArray.Count);
+
+                    foreach (var tok in entityArray)
+                    {
+                        var tokObj = tok as JObject;
+
+                        if (tokObj == null)
+                        {
+                            throw new FormatException("embedded entity is not a json object");
+                        }
+
+                        var href = tokObj["href"];
+                        if (href != null)
+                        {
+                            // Is an embedded link
+                            result.Add(ParseEmbeddedLink(tokObj));
+                        }
+                        else
+                        {
+                            // Is an embedded representation
+                            result.Add(ParseEmbeddedRepresentation(tokObj));
+                        }
+                    }
+                }
+                else
+                {
+                    throw new FormatException("'entities' property is no array of object");
+                }
+            }
+
+            return result ?? new List<IEmbeddedEntity>();
+        }
+
+        private static IEmbeddedLink ParseEmbeddedLink(JObject obj)
+        {
+            var href = ParseHref(obj);
+
+            var rels = ParseRel(obj);
+
+            return new EmbeddedLink(href, rels);
+        }
+
+        private static IEmbeddedRepresentation ParseEmbeddedRepresentation(JObject obj)
+        {
+            var rels = ParseRel(obj);
+
             return null;
         }
 
@@ -215,7 +215,102 @@ using Newtonsoft.Json.Serialization;
             // actions
             // A collection of action objects, represented in JSON Siren as an array such as { "actions": [{ ... }] }. 
             // See Actions. Optional
+            var result = new List<Action>();
 
+            var actions = obj["actions"];
+            if (actions != null)
+            {
+                var actionsArray = actions as JArray;
+
+                if (actionsArray != null)
+                {
+                    foreach (var tok in actionsArray)
+                    {
+                        result.Add(ParseAction(tok));
+                    }
+                }
+                else
+                {
+                    throw new FormatException("'actions' MUST be an array, if it exists");
+                }
+            }
+
+            return result;
+        }
+
+        public static ICollection<Field> ParseFields(JObject action)
+        {           
+            var result = new List<Field>();
+
+            var fields = action["fields"];
+            if (fields != null)
+            {
+                var actionsArray = fields as JArray;
+
+                if (actionsArray != null)
+                {
+                    foreach (var tok in actionsArray)
+                    {
+                        result.Add(ParseField(tok));
+                    }
+                }
+                else
+                {
+                    throw new FormatException("'fields' MUST be an array, if it exists");
+                }
+            }
+
+            return result;
+        }
+
+        public static Field ParseField(JToken token)
+        {
+            // Fields
+            // Fields represent controls inside of actions. They may contain these attributes:
+            // name
+            // A name describing the control. Required.
+            // type
+            // The input type of the field. This may include any of the following input types specified in HTML5:
+            // hidden, text, search, tel, url, email, password, datetime, date, month, week, time, datetime-local, number, range, color, checkbox, radio, file, image, button
+            // When missing, the default value is text. 
+            // Serialization of these fields will depend on the value of the action's type attribute. 
+            // See type under Actions, above. Optional.
+            // value
+            // A value assigned to the field. Optional.
+            // title
+            // Textual annotation of a field. Clients may use this as a label. Optional.
+
+            var obj = token as JObject;
+
+            if (obj == null)
+            {
+                throw new FormatException("A Field must be a json object");
+            }
+
+            var name = ParseStringRequired(obj, "name", "A Field MUST have a 'name' string");
+
+            var typeString = ParseStringOptional(obj, "type", "An Fields 'type' MUST be a string if it exists");
+
+            FieldType type;
+
+            if(!Enum.TryParse(typeString ?? "text", true, out type))
+            {
+                throw new FormatException(string.Format("'{0}' is not a supported Field 'type' value", typeString));
+            }
+
+            var title = ParseStringOptional(obj, "title", "A Fields 'title' MUST be a string, if it exists");
+
+            var value = ParseStringOptional(obj, "value", "An Fields 'value' MUST be a string, if it exists");
+
+            return new Field(name)
+            {
+                Type = type,
+                Value = value
+            };
+        }
+
+        private static Action ParseAction(JToken token)
+        {
             // Actions 
             // show available behaviors an entity exposes.
             // name
@@ -240,39 +335,124 @@ using Newtonsoft.Json.Serialization;
             // fields
             // A collection of fields, expressed as an array of objects in JSON Siren such as { "fields" : [{ ... }] }. 
             // See Fields. Optional.
-            return null;
+            var obj = token as JObject;
+
+            if (obj == null)
+            {
+                throw new FormatException("An Action must be a json object");
+            }
+
+            var name = ParseStringRequired(obj, "name", "An Action MUST have a 'name' string");
+
+            var classes = ParseClasses(obj);
+
+            var methodString = ParseStringOptional(obj, "method", "An Actions 'method' MUST be a string, if it exists");
+
+            var href = ParseHref(obj);
+
+            var title = ParseStringOptional(obj, "title", "An Actions 'title' MUST be a string, if it exists");
+
+            var typeString = ParseStringOptional(obj, "type", "An Actions 'type' MUST be a string if it exists");
+
+            var fields = ParseFields(obj);
+
+            if (typeString == null && fields.Any())
+            {
+                // Default type if we have any field definitions
+                typeString = "application/x-www-form-urlencoded";
+            }
+
+            MediaTypeHeaderValue type = null;
+
+            if (typeString != null)
+            {
+                type = new MediaTypeHeaderValue(typeString);
+            }
+
+            var method = new HttpMethod(methodString ?? "GET");
+
+            return new Action(name, href)
+                {
+                    Title = title,
+                    Type = type,
+                    Method = method,
+                    Fields = fields
+                };
         }
 
-        public static ICollection<Field> ParseFields(JObject action)
+        private static string ParseHref(JObject obj)
         {
-            // Fields
-            // Fields represent controls inside of actions. They may contain these attributes:
-            // name
-            // A name describing the control. Required.
-            // type
-            // The input type of the field. This may include any of the following input types specified in HTML5:
-            // hidden, text, search, tel, url, email, password, datetime, date, month, week, time, datetime-local, number, range, color, checkbox, radio, file, image, button
-            // When missing, the default value is text. 
-            // Serialization of these fields will depend on the value of the action's type attribute. 
-            // See type under Actions, above. Optional.
-            // value
-            // A value assigned to the field. Optional.
-            // title
-            // Textual annotation of a field. Clients may use this as a label. Optional.
-            return null;
+            var href = ParseStringRequired(obj, "href", "'href' must be an URI string");
+
+            return href;
         }
 
-        private static string ParseTitle(JObject obj)
+        private static ICollection<string> ParseRel(JObject obj)
         {
-            // title
-            // Descriptive text about the entity. Optional.
-            return null;
+            ICollection<string> rels = null;
+
+            var relArray = obj["rel"] as JArray;
+            if (relArray != null)
+            {
+                rels = new List<string>();
+                foreach (var item in relArray)
+                {
+                    try
+                    {
+                        rels.Add(item.Value<string>());
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // Conversion to string failed
+                        throw new FormatException("'rel' must be an array of string");
+                    }
+                }
+            }
+
+            if (rels == null)
+            {
+                throw new FormatException("rel is required and MUST be an array of string");
+            }
+
+            return rels;
         }
 
-        public static ISirenEntity Parse(string jsonString)
+        private static string ParseStringRequired(JObject obj, string field, string failureMessage)
         {
-            var jobj = JObject.Parse(jsonString);
-            return ParseDocument(jobj);
+            var token = obj[field];
+
+            if (token == null)
+            {
+                throw new FormatException(failureMessage);
+            }
+
+            try
+            {
+                return token.Value<string>();
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new FormatException(failureMessage, ex);
+            }
+        }
+
+        private static string ParseStringOptional(JObject obj, string field, string failureMessage)
+        {
+            var token = obj[field];
+
+            if (token == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return token.Value<string>();
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new FormatException(failureMessage, ex);
+            }
         }
     }
 }

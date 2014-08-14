@@ -1,14 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WebApiContrib.Formatting.Siren.Client
+﻿namespace WebApiContrib.Formatting.Siren.Client
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.Contracts;
+    using System.Net.Http.Headers;
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class Link
     {
-        public string Href { get; set; }
-        public string Rel { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>required</remarks>
+        public string Href { get; private set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>required</remarks>
+        public ICollection<string> Rel { get; private set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>optional</remarks>
+        public string Title { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>optional</remarks>
+        public MediaTypeHeaderValue Type { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="href"></param>
+        /// <param name="rels"></param>
+        public Link(
+            string href,
+            ICollection<string> rels
+            )
+        {
+            ValidationHelper.ValidateHref(href);
+            ValidationHelper.ValidateRel(rels);
+
+            Href = href;
+            Rel = rels;
+        }
     }
 }

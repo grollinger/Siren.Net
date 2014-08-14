@@ -4,7 +4,7 @@
     using System.Dynamic;
     using System.Linq;    
 
-    public class DynamicSirenEntity : DynamicObject, ISirenEntity
+    public class SirenEntity : DynamicObject, ISirenEntity
     {
         public string Title { get; set; }
         public IDictionary<string, object> Properties { get; set; }
@@ -14,7 +14,7 @@
         public ICollection<Link> Links { get; set; }
 
 
-        public DynamicSirenEntity()
+        public SirenEntity()
         {
             Properties = new Dictionary<string, object>();
             Classes = new List<string>();
