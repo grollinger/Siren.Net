@@ -2,26 +2,32 @@
 {
     using System.Collections.Generic;
     using System.Dynamic;
-    using System.Linq;
+    using System.Linq;    
 
-    public class SirenDocument : DynamicObject
+    public class DynamicSirenEntity : DynamicObject, ISirenEntity
     {
+        public string Title { get; set; }
         public IDictionary<string, object> Properties { get; set; }
-        public IEnumerable<int> Actions { get; set; }
-        public IEnumerable<int> Entities { get; set; }
-        public IEnumerable<string> Classes { get; set; }
-        public IEnumerable<Link> Links { get; set; }
+        public ICollection<Action> Actions { get; set; }
+        public ICollection<IEmbeddedEntity> Entities { get; set; }
+        public ICollection<string> Classes { get; set; }
+        public ICollection<Link> Links { get; set; }
 
-        public object this[string index]
+
+        public DynamicSirenEntity()
         {
-            get { return Properties[index]; }
-            set { Properties[index] = value; }
+            Properties = new Dictionary<string, object>();
+            Classes = new List<string>();
+            Links = new List<Link>();
+            Actions = new List<Action>();
+            Entities = new List<IEmbeddedEntity>();
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             if (!base.TryGetMember(binder, out result))
             {
+
                 return Properties.TryGetValue(binder.Name, out result);
             }
             else
@@ -30,25 +36,17 @@
             }
         }
 
-        public override bool TrySetMember(SetMemberBinder binder, object result)
+        public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            if (!base.TrySetMember(binder, result))
+            if (!base.TrySetMember(binder, value))
             {
-                Properties[binder.Name] = result;
+                Properties[binder.Name] = value;
                 return true;
             }
             else
             {
                 return true;
             }
-        }
-
-        public SirenDocument()
-        {
-            Properties = new Dictionary<string, object>();
-            Classes = Enumerable.Empty<string>();
-            Links = Enumerable.Empty<Link>();
-            Actions = Entities = Enumerable.Empty<int>();
         }
     }
 }
