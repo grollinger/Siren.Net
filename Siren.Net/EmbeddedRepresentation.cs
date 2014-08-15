@@ -17,6 +17,8 @@
             )
         {
             ValidationHelper.ValidateRel(rels);
+
+            Rel = rels;
         }
     }
 }

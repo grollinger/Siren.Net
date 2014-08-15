@@ -145,7 +145,7 @@
         {
             // Arrange
             var invalidFieldType = JObject.Parse(
-                @"{ name: ""orderNumber"", type: ""hidden"", value: ""42"" }"
+                @"{ name: ""orderNumber"", type: ""xyz"", value: ""42"" }"
                 );
 
             var anotherObject = JObject.Parse(

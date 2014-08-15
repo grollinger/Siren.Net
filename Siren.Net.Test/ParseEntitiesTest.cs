@@ -24,8 +24,8 @@
                         age: 42
                     },
                     links: [
-                        { rel: ""self"", href: ""http://localhost:10/test""},
-                        { rel: ""parent"", href: ""http://localhost:10/testdad""}
+                        { rel: [""self""], href: ""http://localhost:10/test""},
+                        { rel: [""parent""], href: ""http://localhost:10/testdad""}
                     ],
                     entities: [
                         { 
@@ -126,8 +126,9 @@
             IEmbeddedRepresentation entity = doc.Entities
                 .Select(x => x.AsRepresentation())
                 .Single(x => x.IsRepresentation());
-            Assert.Contains("http://x.io/rels/customer", entity.Rel);
-            Assert.False(true, "Add more asserts");
+            Assert.Equal("http://x.io/rels/customer", entity.Rel.Single());
+            Assert.Equal(2, entity.Classes.Count);
+            Assert.Equal(1, entity.Links.Count);
         }
 
         [Fact]

@@ -63,6 +63,7 @@
     <Compile Include="ParseEntitiesTest.cs" />
     <Compile Include="ParseBasicTest.cs" />
     <Compile Include="ParseActionsTest.cs" />
+    <Compile Include="ParseLinksTest.cs" />
     <Compile Include="ParsePropertiesTest.cs" />
     <Compile Include="ParseClassesTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

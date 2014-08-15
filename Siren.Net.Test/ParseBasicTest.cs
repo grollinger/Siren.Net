@@ -32,54 +32,6 @@
             Assert.Empty(doc.Links);
             Assert.Empty(doc.Entities);
             Assert.Empty(doc.Properties);
-        }        
-
-        [Fact]
-        public void Parses_into_an_object_supporting_dynamic()
-        {
-            // Arrange
-            var jsonString =
-                @"{
-                    properties: {
-                        name: ""test"",
-                        age: 42
-                    }  
-                }";
-
-            // Act
-            dynamic doc = SirenJson.Parse(jsonString);
-
-            // Assert
-            Assert.NotNull(doc);
-            Assert.Equal(doc.name, "test");
-            Assert.Equal(doc.age, 42);
-        }       
-
-        [Fact]
-        public void Parses_with_links()
-        {
-            // Arrange
-            var jsonString =
-                @"{
-                    class: [""person""],
-                    properties: {
-                        name: ""test"",
-                        age: 42
-                    },
-                    links: [
-                        { rel: ""self"", href: ""http://localhost:10/test""},
-                        { rel: ""parent"", href: ""http://localhost:10/testdad""}
-                    ] 
-                }";
-
-            // Act
-            var doc = SirenJson.Parse(jsonString);
-
-            // Assert
-            Assert.NotNull(doc);
-            Assert.Equal(2, Enumerable.Count(doc.Links));
-            Assert.True(Enumerable.Any(doc.Links, (Func<Link, bool>)((Link x) => x.Rel.Contains("self"))));
-            Assert.True(Enumerable.Any(doc.Links, (Func<Link, bool>)((Link x) => x.Rel.Contains("parent"))));
         }
 
         [Fact]

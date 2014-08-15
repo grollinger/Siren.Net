@@ -106,7 +106,7 @@
             // In JSON Siren, this is an object such as { "name": "Kevin", "age": 30 }. 
             // Optional.
 
-            IDictionary<string, object> result = null;
+            IDictionary<string, object> result = new Dictionary<string, object>();
             var properties = obj["properties"];
 
             if (properties != null)
@@ -114,8 +114,6 @@
                 if (properties is JObject)
                 {
                     var propObject = properties as JObject;
-
-                    result = new Dictionary<string, object>();
 
                     foreach (var keyVal in propObject)
                     {
@@ -195,8 +193,22 @@
         private static IEmbeddedRepresentation ParseEmbeddedRepresentation(JObject obj)
         {
             var rels = ParseRel(obj);
+            var actions = ParseActions(obj);
+            var classes = ParseClasses(obj);
+            var entities = ParseEntities(obj);
+            var links = ParseLinks(obj);
+            var properties = ParseProperties(obj);
+            var title = ParseStringOptional(obj, "title", "An Entities 'title' must be a string, if it exists");
 
-            return null;
+            return new EmbeddedRepresentation(rels)
+                {
+                    Actions = actions,
+                    Classes = classes,
+                    Entities = entities,
+                    Links = links,
+                    Properties = properties,
+                    Title = title,
+                };
         }
 
 
@@ -207,7 +219,27 @@
             // Link items should contain a rel attribute to describe the relationship and an href attribute to point to the target URI. 
             // Entities should include a link rel to self. 
             // In JSON Siren, this is represented as "links": [{ "rel": ["self"], "href": "http://api.x.io/orders/1234" }] Optional.
-            return null;
+            var result = new List<Link>();
+
+            var links = obj["links"];
+            if (links != null)
+            {
+                var linksArray = links as JArray;
+
+                if (linksArray != null)
+                {
+                    foreach (var tok in linksArray)
+                    {
+                        result.Add(ParseLink(tok));
+                    }
+                }
+                else
+                {
+                    throw new FormatException("'links' MUST be an array, if it exists");
+                }
+            }
+
+            return result;
         }
 
         public static ICollection<Action> ParseActions(JObject obj)
@@ -239,7 +271,7 @@
         }
 
         public static ICollection<Field> ParseFields(JObject action)
-        {           
+        {
             var result = new List<Field>();
 
             var fields = action["fields"];
@@ -261,6 +293,26 @@
             }
 
             return result;
+        }
+
+        public static Link ParseLink(JToken token)
+        {
+            var obj = token as JObject;
+
+            if (obj == null)
+            {
+                throw new FormatException("A Link must be a json object");
+            }
+
+            var rel = ParseRel(obj);
+
+            var href = ParseHref(obj);
+
+            var title = ParseStringOptional(obj, "title", "A Links 'title' must be a string if it exists");
+
+            var type = ParseMediaType(obj);
+
+            return new Link(href, rel) { Type = type };
         }
 
         public static Field ParseField(JToken token)
@@ -293,7 +345,7 @@
 
             FieldType type;
 
-            if(!Enum.TryParse(typeString ?? "text", true, out type))
+            if (!Enum.TryParse(typeString ?? "text", true, out type))
             {
                 throw new FormatException(string.Format("'{0}' is not a supported Field 'type' value", typeString));
             }
@@ -352,22 +404,15 @@
 
             var title = ParseStringOptional(obj, "title", "An Actions 'title' MUST be a string, if it exists");
 
-            var typeString = ParseStringOptional(obj, "type", "An Actions 'type' MUST be a string if it exists");
+            var type = ParseMediaType(obj);
 
             var fields = ParseFields(obj);
 
-            if (typeString == null && fields.Any())
+            if (type == null && fields.Any())
             {
                 // Default type if we have any field definitions
-                typeString = "application/x-www-form-urlencoded";
-            }
-
-            MediaTypeHeaderValue type = null;
-
-            if (typeString != null)
-            {
-                type = new MediaTypeHeaderValue(typeString);
-            }
+                type = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            }            
 
             var method = new HttpMethod(methodString ?? "GET");
 
@@ -385,6 +430,18 @@
             var href = ParseStringRequired(obj, "href", "'href' must be an URI string");
 
             return href;
+        }
+
+        private static MediaTypeHeaderValue ParseMediaType(JObject obj)
+        {
+            var typeString = ParseStringOptional(obj, "type", "A 'type' value MUST be a string if it exists");
+            
+            if (typeString != null)
+            {
+                return new MediaTypeHeaderValue(typeString);
+            }
+
+            return null;
         }
 
         private static ICollection<string> ParseRel(JObject obj)
