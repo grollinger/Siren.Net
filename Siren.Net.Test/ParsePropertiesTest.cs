@@ -55,9 +55,9 @@
            
 
             // Assert
-            Assert.Throws<FormatException>(() => SirenJson.ParseProperties(anArray));
-            Assert.Throws<FormatException>(() => SirenJson.ParseProperties(aString));
-            Assert.Throws<FormatException>(() => SirenJson.ParseProperties(aNumber));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseProperties(anArray));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseProperties(aString));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseProperties(aNumber));
         }
 
     }

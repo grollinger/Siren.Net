@@ -134,10 +134,10 @@
             // Act            
 
             // Assert
-            Assert.Throws<FormatException>(() => SirenJson.ParseActions(anObject));
-            Assert.Throws<FormatException>(() => SirenJson.ParseActions(aString));
-            Assert.Throws<FormatException>(() => SirenJson.ParseActions(aNumber));
-            Assert.Throws<FormatException>(() => SirenJson.ParseActions(noHref));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseActions(anObject));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseActions(aString));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseActions(aNumber));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseActions(noHref));
         }
 
         [Fact]
@@ -159,9 +159,9 @@
             // Act
 
             // Assert
-            Assert.Throws<FormatException>(() => SirenJson.ParseField(invalidFieldType));
-            Assert.Throws<FormatException>(() => SirenJson.ParseField(anotherObject));
-            Assert.Throws<FormatException>(() => SirenJson.ParseField(aString));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseField(invalidFieldType));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseField(anotherObject));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseField(aString));
         }
 
     }

@@ -92,6 +92,8 @@
     <Compile Include="SirenEntity.cs" />
     <Compile Include="SirenExtensions.cs" />
     <Compile Include="SirenJson.cs" />
+    <Compile Include="SirenJson.Unparser.cs" />
+    <Compile Include="SirenJson.Parser.cs" />
     <Compile Include="SirenJsonMediaTypeFormatter.cs" />
     <Compile Include="ValidationHelper.cs" />
   </ItemGroup>

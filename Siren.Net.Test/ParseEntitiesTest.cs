@@ -169,10 +169,10 @@
             // Act            
 
             // Assert
-            Assert.Throws<FormatException>(() => SirenJson.ParseEntities(anObject));
-            Assert.Throws<FormatException>(() => SirenJson.ParseEntities(aString));
-            Assert.Throws<FormatException>(() => SirenJson.ParseEntities(aNumber));
-            Assert.Throws<FormatException>(() => SirenJson.ParseEntities(noRel));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseEntities(anObject));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseEntities(aString));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseEntities(aNumber));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseEntities(noRel));
         }
 
     }

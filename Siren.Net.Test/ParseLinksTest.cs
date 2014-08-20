@@ -71,11 +71,11 @@
             // Act            
 
             // Assert
-            Assert.Throws<FormatException>(() => SirenJson.ParseLinks(anObject));
-            Assert.Throws<FormatException>(() => SirenJson.ParseLinks(aString));
-            Assert.Throws<FormatException>(() => SirenJson.ParseLinks(aNumber));
-            Assert.Throws<FormatException>(() => SirenJson.ParseLinks(noRel));
-            Assert.Throws<FormatException>(() => SirenJson.ParseLinks(noHref));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseLinks(anObject));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseLinks(aString));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseLinks(aNumber));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseLinks(noRel));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseLinks(noHref));
         }
     }
 }

@@ -67,7 +67,9 @@
     <Compile Include="ParsePropertiesTest.cs" />
     <Compile Include="ParseClassesTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHelper.cs" />
     <Compile Include="TestPerson.cs" />
+    <Compile Include="UnparseBasicTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

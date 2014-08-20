@@ -54,9 +54,9 @@
             // Act            
 
             // Assert
-            Assert.Throws<FormatException>(() => SirenJson.ParseClasses(anObject));
-            Assert.Throws<FormatException>(() => SirenJson.ParseClasses(aString));
-            Assert.Throws<FormatException>(() => SirenJson.ParseClasses(aNumber));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseClasses(anObject));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseClasses(aString));
+            Assert.Throws<FormatException>(() => SirenJson.Parser.ParseClasses(aNumber));
         }
 
     }
