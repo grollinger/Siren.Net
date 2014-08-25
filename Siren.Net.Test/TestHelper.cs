@@ -67,9 +67,10 @@
             Assert.Equal("3", properties["itemCount"].ToString());
             Assert.Equal("pending", properties["status"].ToString());
 
-            Assert.Equal(2, entity.Entities.Count);
+            Assert.Equal(1, entity.EmbeddedLinks.Count());
+            Assert.Equal(1, entity.EmbeddedRepresentations.Count());
 
-            var link = entity.Entities.Single(x => x.IsLink()).AsLink();
+            var link = entity.EmbeddedLinks.Single();
             Assert.NotNull(link);
             Assert.Equal(2, link.Classes.Count);
             Assert.Contains("items", link.Classes);
@@ -77,7 +78,7 @@
             Assert.Equal("http://x.io/rels/order-items", link.Rel.Single());
             Assert.Equal("http://api.x.io/orders/42/items", link.Href);
 
-            var rep = entity.Entities.Single(x => x.IsRepresentation()).AsRepresentation();
+            var rep = entity.EmbeddedRepresentations.Single();
             Assert.NotNull(rep);
             Assert.Equal(2, rep.Classes.Count);
             Assert.Contains("info", rep.Classes);

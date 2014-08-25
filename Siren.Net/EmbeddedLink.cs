@@ -1,10 +1,11 @@
 ﻿namespace WebApiContrib.Formatting.Siren.Client
 {
-    using System;
     using System.Collections.Generic;
-    using System.Net.Http.Headers;
 
-
+    /// <summary>
+    /// Represents a sub-entity that should only be linked to.
+    /// That is, its full representation should not be included in the representation of its parent.
+    /// </summary>
     public class EmbeddedLink : Link, IEmbeddedLink
     {
         /// <summary>
@@ -20,7 +21,7 @@
             string href,
             ICollection<string> rels
             ) : base(href, rels)
-        {            
+        {
         }
     }
 }

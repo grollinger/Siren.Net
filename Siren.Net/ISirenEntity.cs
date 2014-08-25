@@ -31,7 +31,13 @@
         /// 
         /// </summary>
         /// <remarks>optional</remarks>
-        ICollection<IEmbeddedEntity> Entities { get; }
+        ICollection<IEmbeddedRepresentation> EmbeddedRepresentations { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>optional</remarks>
+        ICollection<IEmbeddedLink> EmbeddedLinks { get; }
 
         /// <summary>
         /// 
@@ -62,6 +68,12 @@
         /// </summary>
         /// <remarks>required</remarks>
         string Href { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>optional</remarks>
+        string Title { get; }
 
         /// <summary>
         /// 

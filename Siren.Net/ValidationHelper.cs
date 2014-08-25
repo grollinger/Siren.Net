@@ -29,7 +29,7 @@
         /// <param name="href">The proposed value.</param>
         public static void ValidateHref(string href)
         {
-            Contract.Requires<ArgumentException>(!string.IsNullOrWhiteSpace(href), "href must be non-empty");
+            Contract.Requires<ArgumentException>(Uri.IsWellFormedUriString(href, UriKind.RelativeOrAbsolute), "href must be a valid URI");
         }
     }
 }

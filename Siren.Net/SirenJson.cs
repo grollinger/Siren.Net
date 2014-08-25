@@ -10,6 +10,20 @@
 
     public static partial class SirenJson
     {
+        internal const string CLASSES = "class";
+        internal const string TITLE = "title";
+        internal const string ENTITIES = "entities";
+        internal const string LINKS = "links";
+        internal const string HREF = "href";
+        internal const string RELS = "rel";
+        internal const string TYPE = "type";
+        internal const string PROPERTIES = "properties";
+        internal const string ACTIONS = "actions";
+        internal const string FIELDS = "fields";
+        internal const string METHOD = "method";
+        internal const string NAME = "name";
+        internal const string VALUE = "value";
+
         internal class ContractResolver : DefaultContractResolver
         {
             public ContractResolver()
@@ -25,7 +39,7 @@
                 {
                     // Map differing property names
                     var classes = properties.Single(x => x.PropertyName == "Classes");
-                    classes.PropertyName = "class";
+                    classes.PropertyName = CLASSES;
                 }
 
                 return properties;
@@ -59,7 +73,7 @@
 
         public static JObject Unparse(ISirenEntity entity)
         {
-            return null;
+            return Unparser.UnparseDocument(entity);
         }
     }
 }

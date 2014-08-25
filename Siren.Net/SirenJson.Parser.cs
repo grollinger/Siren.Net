@@ -19,12 +19,14 @@
             {
                 var document = new SirenEntity();
 
-                document.Title = ParseStringOptional(obj, "title", "An Entitys 'title' must be a string if it exists");
+                document.Title = ParseStringOptional(obj, "title", "An Entity's 'title' must be a string if it exists");
                 document.Classes = ParseClasses(obj);
                 document.Links = ParseLinks(obj);
                 document.Properties = ParseProperties(obj);
                 document.Actions = ParseActions(obj);
-                document.Entities = ParseEntities(obj);
+                var embedded = ParseEntities(obj);
+                document.EmbeddedLinks = embedded.Item1;
+                document.EmbeddedRepresentations = embedded.Item2;
 
                 return document;
             }
@@ -88,7 +90,7 @@
                 return result;
             }
 
-            public static ICollection<IEmbeddedEntity> ParseEntities(JObject obj)
+            public static Tuple<ICollection<IEmbeddedLink>, ICollection<IEmbeddedRepresentation>> ParseEntities(JObject obj)
             {
                 // entities 
                 // A collection of related sub-entities. 
@@ -98,7 +100,8 @@
                 // One difference is that a sub-entity MUST contain a rel attribute to describe its relationship to the parent entity.
                 // In JSON Siren, this is represented as an array. Optional.
 
-                ICollection<IEmbeddedEntity> result = null;
+                ICollection<IEmbeddedLink> ELinks = new List<IEmbeddedLink>();
+                ICollection<IEmbeddedRepresentation> EReps = new List<IEmbeddedRepresentation>();
                 var entities = obj["entities"];
 
                 if (entities != null)
@@ -106,8 +109,6 @@
                     if (entities is JArray)
                     {
                         var entityArray = entities as JArray;
-
-                        result = new List<IEmbeddedEntity>(entityArray.Count);
 
                         foreach (var tok in entityArray)
                         {
@@ -122,12 +123,12 @@
                             if (href != null)
                             {
                                 // Is an embedded link
-                                result.Add(ParseEmbeddedLink(tokObj));
+                                ELinks.Add(ParseEmbeddedLink(tokObj));
                             }
                             else
                             {
                                 // Is an embedded representation
-                                result.Add(ParseEmbeddedRepresentation(tokObj));
+                                EReps.Add(ParseEmbeddedRepresentation(tokObj));
                             }
                         }
                     }
@@ -137,7 +138,7 @@
                     }
                 }
 
-                return result ?? new List<IEmbeddedEntity>();
+                return Tuple.Create(ELinks, EReps);
             }
 
             private static IEmbeddedLink ParseEmbeddedLink(JObject obj)
@@ -165,7 +166,7 @@
                 var rels = ParseRel(obj);
                 var actions = ParseActions(obj);
                 var classes = ParseClasses(obj);
-                var entities = ParseEntities(obj);
+                var embedded = ParseEntities(obj);
                 var links = ParseLinks(obj);
                 var properties = ParseProperties(obj);
                 var title = ParseStringOptional(obj, "title", "An Entities 'title' must be a string, if it exists");
@@ -174,7 +175,8 @@
                 {
                     Actions = actions,
                     Classes = classes,
-                    Entities = entities,
+                    EmbeddedLinks = embedded.Item1,
+                    EmbeddedRepresentations = embedded.Item2,
                     Links = links,
                     Properties = properties,
                     Title = title,
@@ -214,8 +216,8 @@
 
             public static ICollection<Action> ParseActions(JObject obj)
             {
-                // actions
-                // A collection of action objects, represented in JSON Siren as an array such as { "actions": [{ ... }] }. 
+                // fields
+                // A collection of field objects, represented in JSON Siren as an array such as { "fields": [{ ... }] }. 
                 // See Actions. Optional
                 var result = new List<Action>();
 
@@ -292,14 +294,14 @@
             public static Field ParseField(JToken token)
             {
                 // Fields
-                // Fields represent controls inside of actions. They may contain these attributes:
+                // Fields represent controls inside of fields. They may contain these attributes:
                 // name
                 // A name describing the control. Required.
                 // type
                 // The input type of the field. This may include any of the following input types specified in HTML5:
                 // hidden, text, search, tel, url, email, password, datetime, date, month, week, time, datetime-local, number, range, color, checkbox, radio, file, image, button
                 // When missing, the default value is text. 
-                // Serialization of these fields will depend on the value of the action's type attribute. 
+                // Serialization of these fields will depend on the value of the field's type attribute. 
                 // See type under Actions, above. Optional.
                 // value
                 // A value assigned to the field. Optional.
@@ -340,9 +342,9 @@
                 // Actions 
                 // show available behaviors an entity exposes.
                 // name
-                // A string that identifies the action to be performed. Required.
+                // A string that identifies the field to be performed. Required.
                 // class
-                // Describes the nature of an action based on the current representation. 
+                // Describes the nature of an field based on the current representation. 
                 // Possible values are implementation-dependent and should be documented. 
                 // MUST be an array of strings. Optional.
                 // method
@@ -351,9 +353,9 @@
                 // As new methods are introduced, this list can be extended. 
                 // If this attribute is omitted, GET should be assumed. Optional.
                 // href
-                // The URI of the action. Required.
+                // The URI of the field. Required.
                 // title
-                // Descriptive text about the action. Optional.
+                // Descriptive text about the field. Optional.
                 // type
                 // The encoding type for the request. 
                 // When omitted and the fields attribute exists, the default value is application/x-www-form-urlencoded. 

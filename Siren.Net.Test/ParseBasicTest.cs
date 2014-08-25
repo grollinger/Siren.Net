@@ -30,7 +30,8 @@
             Assert.Empty(doc.Classes);
             Assert.Empty(doc.Actions);
             Assert.Empty(doc.Links);
-            Assert.Empty(doc.Entities);
+            Assert.Empty(doc.EmbeddedLinks);
+            Assert.Empty(doc.EmbeddedRepresentations);
             Assert.Empty(doc.Properties);
         }
 

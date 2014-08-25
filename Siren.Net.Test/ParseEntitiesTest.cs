@@ -66,7 +66,8 @@
 
             // Assert
             Assert.NotNull(doc);
-            Assert.Equal(2, doc.Entities.Count());
+            Assert.Equal(1, doc.EmbeddedLinks.Count());
+            Assert.Equal(1, doc.EmbeddedRepresentations.Count());
         }
 
         [Fact]
@@ -89,10 +90,8 @@
 
             // Assert
             Assert.NotNull(doc);
-            Assert.Equal(1, doc.Entities.Count);
-            IEmbeddedLink link = doc.Entities
-                .Select(x => x.AsLink())
-                .Single(x => x.IsLink());
+            Assert.Equal(1, doc.EmbeddedLinks.Count);
+            IEmbeddedLink link = doc.EmbeddedLinks.Single();
             Assert.Equal("http://api.x.io/orders/42/items", link.Href.ToString());
             Assert.Contains("http://x.io/rels/order-items", link.Rel);            
         }
@@ -123,9 +122,7 @@
 
             // Assert
             Assert.NotNull(doc);
-            IEmbeddedRepresentation entity = doc.Entities
-                .Select(x => x.AsRepresentation())
-                .Single(x => x.IsRepresentation());
+            IEmbeddedRepresentation entity = doc.EmbeddedRepresentations.Single();
             Assert.Equal("http://x.io/rels/customer", entity.Rel.Single());
             Assert.Equal(2, entity.Classes.Count);
             Assert.Equal(1, entity.Links.Count);

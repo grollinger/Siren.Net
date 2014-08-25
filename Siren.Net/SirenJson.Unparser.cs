@@ -13,474 +13,228 @@
         {
             internal static JObject UnparseDocument(ISirenEntity entity)
             {
-            //    var document = new SirenEntity();
+                var result = new JObject();
 
-            //    document.Title = ParseStringOptional(obj, "title", "An Entitys 'title' must be a string if it exists");
-            //    document.Classes = ParseClasses(obj);
-            //    document.Links = ParseLinks(obj);
-            //    document.Properties = ParseProperties(obj);
-            //    document.Actions = ParseActions(obj);
-            //    document.Entities = ParseEntities(obj);
-
-            //    return document;
-
-                return null;
-            }
-
-            public static ICollection<string> ParseClasses(JObject obj)
-            {
-                // class
-                // Describes the nature of an entity's content based on the current representation. 
-                // Possible values are implementation-dependent and should be documented. 
-                // MUST be an array of strings. 
-                // Optional.
-
-                ICollection<string> result = null;
-                var classes = obj["class"];
-
-                if (classes != null)
-                {
-                    if (classes is JArray)
-                    {
-                        var classArray = classes as JArray;
-
-                        result = (from tok in classArray
-                                  select tok.Value<string>()).ToList();
-                    }
-                    else
-                    {
-                        throw new FormatException("'class' property is no array of string");
-                    }
-                }
-
-                return result ?? new List<string>();
-            }
-
-            public static IDictionary<string, object> ParseProperties(JObject obj)
-            {
-                // properties
-                // A set of key-value pairs that describe the state of an entity. 
-                // In JSON Siren, this is an object such as { "name": "Kevin", "age": 30 }. 
-                // Optional.
-
-                IDictionary<string, object> result = new Dictionary<string, object>();
-                var properties = obj["properties"];
-
-                if (properties != null)
-                {
-                    if (properties is JObject)
-                    {
-                        var propObject = properties as JObject;
-
-                        foreach (var keyVal in propObject)
-                        {
-                            result.Add(keyVal.Key, keyVal.Value);
-                        }
-                    }
-                    else
-                    {
-                        throw new FormatException("'properties' property is no json object");
-                    }
-                }
+                UnparseClasses(result, entity.Classes);
+                UnparseTitle(result, entity.Title);
+                UnparseProperties(result, entity.Properties);
+                UnparseActions(result, entity.Actions);
+                UnparseLinks(result, entity.Links);
+                UnparseEntities(result, entity.EmbeddedLinks, entity.EmbeddedRepresentations);
 
                 return result;
             }
 
-            public static ICollection<IEmbeddedEntity> ParseEntities(JObject obj)
+            private static void UnparseTitle(JObject obj, string title)
             {
-                // entities 
-                // A collection of related sub-entities. 
-                // If a sub-entity contains an href value, it should be treated as an embedded link. 
-                // Clients may choose to optimistically load embedded links. 
-                // If no href value exists, the sub-entity is an embedded entity representation that contains all the characteristics of a typical entity. 
-                // One difference is that a sub-entity MUST contain a rel attribute to describe its relationship to the parent entity.
-                // In JSON Siren, this is represented as an array. Optional.
-
-                ICollection<IEmbeddedEntity> result = null;
-                var entities = obj["entities"];
-
-                if (entities != null)
+                if (!string.IsNullOrEmpty(title))
                 {
-                    if (entities is JArray)
+                    obj[TITLE] = title;
+                }
+            }
+
+            public static void UnparseClasses(JObject obj, IEnumerable<string> Classes)
+            {
+                if (Classes != null && Classes.Any())
+                {
+                    obj[CLASSES] = JArray.FromObject(Classes);
+                }
+            }
+
+            public static void UnparseProperties(JObject obj, IDictionary<string, object> Properties)
+            {
+                if (Properties != null && Properties.Any())
+                {
+                    var properties = new JObject();
+                    foreach (var prop in Properties)
                     {
-                        var entityArray = entities as JArray;
+                        properties.Add(prop.Key, JToken.FromObject(prop.Value));
+                    }
 
-                        result = new List<IEmbeddedEntity>(entityArray.Count);
+                    obj[PROPERTIES] = properties;
+                }
+            }
 
-                        foreach (var tok in entityArray)
+            public static void UnparseEntities(JObject obj, IEnumerable<IEmbeddedLink> ELinks, IEnumerable<IEmbeddedRepresentation> EReps)
+            {
+                var anyLinks = ELinks != null && ELinks.Any();
+                var anyReps = EReps != null && EReps.Any();
+
+                if (anyLinks || anyReps)
+                {
+                    var entities = new JArray();
+
+                    if (anyReps)
+                    {
+                        foreach (var rep in EReps)
                         {
-                            var tokObj = tok as JObject;
-
-                            if (tokObj == null)
-                            {
-                                throw new FormatException("embedded entity is not a json object");
-                            }
-
-                            var href = tokObj["href"];
-                            if (href != null)
-                            {
-                                // Is an embedded link
-                                result.Add(ParseEmbeddedLink(tokObj));
-                            }
-                            else
-                            {
-                                // Is an embedded representation
-                                result.Add(ParseEmbeddedRepresentation(tokObj));
-                            }
+                            entities.Add(UnparseEmbeddedRepresentation(rep));
                         }
                     }
-                    else
+
+                    if (anyLinks)
                     {
-                        throw new FormatException("'entities' property is no array of object");
-                    }
-                }
-
-                return result ?? new List<IEmbeddedEntity>();
-            }
-
-            private static IEmbeddedLink ParseEmbeddedLink(JObject obj)
-            {
-                var href = ParseHref(obj);
-
-                var rels = ParseRel(obj);
-
-                var classes = ParseClasses(obj);
-
-                var title = ParseStringOptional(obj, "title", "An Embedded Links 'title' MUST be a string if it exists");
-
-                var type = ParseMediaType(obj);
-
-                return new EmbeddedLink(href, rels)
-                {
-                    Classes = classes,
-                    Title = title,
-                    Type = type
-                };
-            }
-
-            private static IEmbeddedRepresentation ParseEmbeddedRepresentation(JObject obj)
-            {
-                var rels = ParseRel(obj);
-                var actions = ParseActions(obj);
-                var classes = ParseClasses(obj);
-                var entities = ParseEntities(obj);
-                var links = ParseLinks(obj);
-                var properties = ParseProperties(obj);
-                var title = ParseStringOptional(obj, "title", "An Entities 'title' must be a string, if it exists");
-
-                return new EmbeddedRepresentation(rels)
-                {
-                    Actions = actions,
-                    Classes = classes,
-                    Entities = entities,
-                    Links = links,
-                    Properties = properties,
-                    Title = title,
-                };
-            }
-
-
-            public static ICollection<Link> ParseLinks(JObject obj)
-            {
-                // links
-                // A collection of items that describe navigational links, distinct from entity relationships. 
-                // Link items should contain a rel attribute to describe the relationship and an href attribute to point to the target URI. 
-                // Entities should include a link rel to self. 
-                // In JSON Siren, this is represented as "links": [{ "rel": ["self"], "href": "http://api.x.io/orders/1234" }] Optional.
-                var result = new List<Link>();
-
-                var links = obj["links"];
-                if (links != null)
-                {
-                    var linksArray = links as JArray;
-
-                    if (linksArray != null)
-                    {
-                        foreach (var tok in linksArray)
+                        foreach (var link in ELinks)
                         {
-                            result.Add(ParseLink(tok));
+                            entities.Add(UnparseEmbeddedLink(link));
                         }
                     }
-                    else
+
+                    obj[ENTITIES] = entities;
+                }
+            }
+
+            private static JObject UnparseEmbeddedLink(IEmbeddedLink Link)
+            {
+                var link = new JObject();
+
+                link[HREF] = Link.Href;
+
+                UnparseClasses(link, Link.Classes);
+
+                UnparseRels(link, Link.Rel);
+
+                UnparseTitle(link, Link.Title);
+
+                if (Link.Type != null)
+                {
+                    link[TYPE] = Link.Type.ToString();
+                }
+
+                return link;
+            }
+
+
+
+            private static void UnparseRels(JObject link, IEnumerable<string> Rels)
+            {
+                if (Rels != null && Rels.Any())
+                {
+                    link[RELS] = JArray.FromObject(Rels);
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("An Entry for '{0}' is required but none was specified.", RELS));
+                }
+            }
+
+            private static JObject UnparseEmbeddedRepresentation(IEmbeddedRepresentation Entity)
+            {
+                var entity = new JObject();
+
+                UnparseClasses(entity, Entity.Classes);
+                UnparseRels(entity, Entity.Rel);
+                UnparseTitle(entity, Entity.Title);
+                UnparseProperties(entity, Entity.Properties);
+                UnparseActions(entity, Entity.Actions);
+                UnparseLinks(entity, Entity.Links);
+                UnparseEntities(entity, Entity.EmbeddedLinks, Entity.EmbeddedRepresentations);
+
+                return entity;
+            }
+
+
+            public static void UnparseLinks(JObject obj, IEnumerable<Link> Links)
+            {
+                if (Links != null && Links.Any())
+                {
+                    var links = new JArray();
+                    foreach (var l in Links)
                     {
-                        throw new FormatException("'links' MUST be an array, if it exists");
-                    }
-                }
+                        var link = new JObject();
 
-                return result;
+                        link[HREF] = l.Href;
+
+                        UnparseRels(link, l.Rel);
+
+                        UnparseTitle(link, l.Title);
+
+                        UnparseType(link, l.Type);
+
+                        links.Add(link);
+                    }
+
+                    obj[LINKS] = links;
+                }
             }
 
-            public static ICollection<Action> ParseActions(JObject obj)
+            public static void UnparseActions(JObject obj, IEnumerable<Action> Actions)
             {
-                // actions
-                // A collection of action objects, represented in JSON Siren as an array such as { "actions": [{ ... }] }. 
-                // See Actions. Optional
-                var result = new List<Action>();
-
-                var actions = obj["actions"];
-                if (actions != null)
+                if (Actions != null && Actions.Any())
                 {
-                    var actionsArray = actions as JArray;
+                    var actions = new JArray();
 
-                    if (actionsArray != null)
+                    foreach (var action in Actions)
                     {
-                        foreach (var tok in actionsArray)
-                        {
-                            result.Add(ParseAction(tok));
-                        }
+                        actions.Add(UnparseAction(action));
                     }
-                    else
+
+                    obj[ACTIONS] = actions;
+                }
+            }
+
+            public static void UnparseFields(JObject action, IEnumerable<Field> Fields)
+            {
+                if (Fields != null && Fields.Any())
+                {
+                    var fields = new JArray();
+
+                    foreach (var field in Fields)
                     {
-                        throw new FormatException("'actions' MUST be an array, if it exists");
+                        fields.Add(UnparseField(field));
                     }
-                }
 
-                return result;
-            }
-
-            public static ICollection<Field> ParseFields(JObject action)
-            {
-                var result = new List<Field>();
-
-                var fields = action["fields"];
-                if (fields != null)
-                {
-                    var actionsArray = fields as JArray;
-
-                    if (actionsArray != null)
-                    {
-                        foreach (var tok in actionsArray)
-                        {
-                            result.Add(ParseField(tok));
-                        }
-                    }
-                    else
-                    {
-                        throw new FormatException("'fields' MUST be an array, if it exists");
-                    }
-                }
-
-                return result;
-            }
-
-            public static Link ParseLink(JToken token)
-            {
-                var obj = token as JObject;
-
-                if (obj == null)
-                {
-                    throw new FormatException("A Link must be a json object");
-                }
-
-                var rel = ParseRel(obj);
-
-                var href = ParseHref(obj);
-
-                var title = ParseStringOptional(obj, "title", "A Links 'title' must be a string if it exists");
-
-                var type = ParseMediaType(obj);
-
-                return new Link(href, rel)
-                {
-                    Type = type,
-                    Title = title
-                };
-            }
-
-            public static Field ParseField(JToken token)
-            {
-                // Fields
-                // Fields represent controls inside of actions. They may contain these attributes:
-                // name
-                // A name describing the control. Required.
-                // type
-                // The input type of the field. This may include any of the following input types specified in HTML5:
-                // hidden, text, search, tel, url, email, password, datetime, date, month, week, time, datetime-local, number, range, color, checkbox, radio, file, image, button
-                // When missing, the default value is text. 
-                // Serialization of these fields will depend on the value of the action's type attribute. 
-                // See type under Actions, above. Optional.
-                // value
-                // A value assigned to the field. Optional.
-                // title
-                // Textual annotation of a field. Clients may use this as a label. Optional.
-
-                var obj = token as JObject;
-
-                if (obj == null)
-                {
-                    throw new FormatException("A Field must be a json object");
-                }
-
-                var name = ParseStringRequired(obj, "name", "A Field MUST have a 'name' string");
-
-                var typeString = ParseStringOptional(obj, "type", "An Fields 'type' MUST be a string if it exists");
-
-                FieldType type;
-
-                if (!Enum.TryParse(typeString ?? "text", true, out type))
-                {
-                    throw new FormatException(string.Format("'{0}' is not a supported Field 'type' value", typeString));
-                }
-
-                var title = ParseStringOptional(obj, "title", "A Fields 'title' MUST be a string, if it exists");
-
-                var value = ParseStringOptional(obj, "value", "An Fields 'value' MUST be a string, if it exists");
-
-                return new Field(name)
-                {
-                    Type = type,
-                    Value = value
-                };
-            }
-
-            private static Action ParseAction(JToken token)
-            {
-                // Actions 
-                // show available behaviors an entity exposes.
-                // name
-                // A string that identifies the action to be performed. Required.
-                // class
-                // Describes the nature of an action based on the current representation. 
-                // Possible values are implementation-dependent and should be documented. 
-                // MUST be an array of strings. Optional.
-                // method
-                // An enumerated attribute mapping to a protocol method. 
-                // For HTTP, these values may be GET, PUT, POST, DELETE, or PATCH. 
-                // As new methods are introduced, this list can be extended. 
-                // If this attribute is omitted, GET should be assumed. Optional.
-                // href
-                // The URI of the action. Required.
-                // title
-                // Descriptive text about the action. Optional.
-                // type
-                // The encoding type for the request. 
-                // When omitted and the fields attribute exists, the default value is application/x-www-form-urlencoded. 
-                // Optional.
-                // fields
-                // A collection of fields, expressed as an array of objects in JSON Siren such as { "fields" : [{ ... }] }. 
-                // See Fields. Optional.
-                var obj = token as JObject;
-
-                if (obj == null)
-                {
-                    throw new FormatException("An Action must be a json object");
-                }
-
-                var name = ParseStringRequired(obj, "name", "An Action MUST have a 'name' string");
-
-                var classes = ParseClasses(obj);
-
-                var methodString = ParseStringOptional(obj, "method", "An Actions 'method' MUST be a string, if it exists");
-
-                var href = ParseHref(obj);
-
-                var title = ParseStringOptional(obj, "title", "An Actions 'title' MUST be a string, if it exists");
-
-                var type = ParseMediaType(obj);
-
-                var fields = ParseFields(obj);
-
-                if (type == null && fields.Any())
-                {
-                    // Default type if we have any field definitions
-                    type = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-                }
-
-                var method = new HttpMethod(methodString ?? "GET");
-
-                return new Action(name, href)
-                {
-                    Title = title,
-                    Type = type,
-                    Method = method,
-                    Fields = fields
-                };
-            }
-
-            private static string ParseHref(JObject obj)
-            {
-                var href = ParseStringRequired(obj, "href", "'href' must be an URI string");
-
-                return href;
-            }
-
-            private static MediaTypeHeaderValue ParseMediaType(JObject obj)
-            {
-                var typeString = ParseStringOptional(obj, "type", "A 'type' value MUST be a string if it exists");
-
-                if (typeString != null)
-                {
-                    return new MediaTypeHeaderValue(typeString);
-                }
-
-                return null;
-            }
-
-            private static ICollection<string> ParseRel(JObject obj)
-            {
-                ICollection<string> rels = null;
-
-                var relArray = obj["rel"] as JArray;
-                if (relArray != null)
-                {
-                    rels = new List<string>();
-                    foreach (var item in relArray)
-                    {
-                        try
-                        {
-                            rels.Add(item.Value<string>());
-                        }
-                        catch (InvalidCastException)
-                        {
-                            // Conversion to string failed
-                            throw new FormatException("'rel' must be an array of string");
-                        }
-                    }
-                }
-
-                if (rels == null)
-                {
-                    throw new FormatException("rel is required and MUST be an array of string");
-                }
-
-                return rels;
-            }
-
-            private static string ParseStringRequired(JObject obj, string field, string failureMessage)
-            {
-                var token = obj[field];
-
-                if (token == null)
-                {
-                    throw new FormatException(failureMessage);
-                }
-
-                try
-                {
-                    return token.Value<string>();
-                }
-                catch (InvalidCastException ex)
-                {
-                    throw new FormatException(failureMessage, ex);
+                    action[FIELDS] = fields;
                 }
             }
 
-            private static string ParseStringOptional(JObject obj, string field, string failureMessage)
+            private static JToken UnparseField(Field f)
             {
-                var token = obj[field];
+                var field = new JObject();
 
-                if (token == null)
+                field[NAME] = f.Name;
+
+                if (f.Type != FieldType.Text)
                 {
-                    return null;
+                    field[TYPE] = f.Type.ToString().ToLowerInvariant();
                 }
 
-                try
+                if (f.Value != null)
                 {
-                    return token.Value<string>();
+                    field[VALUE] = JValue.FromObject(f.Value);
                 }
-                catch (InvalidCastException ex)
+
+                return field;
+            }
+
+
+            private static JObject UnparseAction(Action a)
+            {
+                var action = new JObject();
+
+                action[NAME] = a.Name;
+
+                action[HREF] = a.Href;
+
+                UnparseClasses(action, a.Classes);
+                UnparseTitle(action, a.Title);
+                UnparseType(action, a.Type);
+
+                if (a.Method != null)
                 {
-                    throw new FormatException(failureMessage, ex);
+                    action[METHOD] = a.Method.Method;
+                }
+
+                UnparseFields(action, a.Fields);
+
+                return action;
+            }
+
+            private static void UnparseType(JObject obj, MediaTypeHeaderValue Type)
+            {
+                if (Type != null)
+                {
+                    obj[TYPE] = Type.ToString();
                 }
             }
         }

@@ -12,19 +12,19 @@
     public class Action
     {
         /// <summary>
-        /// Gets a string that identifies the action to be performed.
+        /// Gets a string that identifies the field to be performed.
         /// </summary>
         /// <remarks>Required Property.</remarks>
         public string Name { get; private set; }
 
         /// <summary>
-        /// Gets the URI of the action.
+        /// Gets the URI of the field.
         /// </summary>
         /// <remarks>Required Property.</remarks>
         public string Href { get; private set; }
 
         /// <summary>
-        /// Gets a descriptive text about the action.
+        /// Gets a descriptive text about the field.
         /// </summary>
         /// <remarks>Optional Property.</remarks>
         public string Title { get; set; }
@@ -46,7 +46,7 @@
         public MediaTypeHeaderValue Type { get; set; }
 
         /// <summary>
-        /// Gets a collection of values that describe the nature of an action based on the current representation. 
+        /// Gets a collection of values that describe the nature of an field based on the current representation. 
         /// Possible values are implementation-dependent and should be documented.
         /// </summary>
         /// <remarks>Optional Property.</remarks>
