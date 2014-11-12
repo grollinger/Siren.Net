@@ -5,10 +5,7 @@
 
     public class EmbeddedRepresentation : SirenEntity, IEmbeddedRepresentation
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <remarks>required</remarks>
+        /// <inheritdoc cref="IEmbeddedEntity.Rel"/>
         public ICollection<string> Rel { get; private set; }
 
         

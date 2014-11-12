@@ -2,18 +2,23 @@
 {
     using System.Collections.Generic;
     using System.Dynamic;
-    using System.Linq;    
+    using System.Linq;
 
     public class SirenEntity : ISirenEntity
     {
         public string Title { get; set; }
-        public IDictionary<string, object> Properties { get; set; }
-        public ICollection<Action> Actions { get; set; }
-        public ICollection<IEmbeddedRepresentation> EmbeddedRepresentations { get; set; }
-        public ICollection<IEmbeddedLink> EmbeddedLinks { get; set; }
-        public ICollection<string> Classes { get; set; }
-        public ICollection<Link> Links { get; set; }
 
+        public IDictionary<string, object> Properties { get; set; }
+
+        public ICollection<Action> Actions { get; set; }
+
+        public ICollection<IEmbeddedRepresentation> EmbeddedRepresentations { get; set; }
+
+        public ICollection<IEmbeddedLink> EmbeddedLinks { get; set; }
+
+        public ICollection<string> Classes { get; set; }
+
+        public ICollection<Link> Links { get; set; }
 
         public SirenEntity()
         {

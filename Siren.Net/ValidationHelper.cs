@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Contracts;
+    using System.Linq;
 
     /// <summary>
     /// Contains Helper Methods that validate Arguments passed to Object Constructors or Library Methods
@@ -16,12 +17,12 @@
         /// <exception cref="System.ArgumentException">If <paramref name="rels"/> is empty.</exception>
         /// </summary>
         /// <param name="rels">The proposed value.</param>
-        public static void ValidateRel(ICollection<string> rels)
+        public static void ValidateRel(IEnumerable<string> rels)
         {
             Contract.Requires<ArgumentNullException>(rels != null, "rels");
-            Contract.Requires<ArgumentException>(rels.Count > 0, "rels may not be empty");
+            Contract.Requires<ArgumentException>(rels.Any(), "rels may not be empty");
         }
-        
+
         /// <summary>
         /// Validates a proposed Value for the <c>Href</c> Property of a <see cref="Link"/> or <see cref="EmbeddedLink"/>.
         /// <exception cref="System.ArgumentException">If <paramref name="href"/> is null or whitespace</exception>

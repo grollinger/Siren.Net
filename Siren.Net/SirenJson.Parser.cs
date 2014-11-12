@@ -15,8 +15,15 @@
         public static class Parser
         {          
 
-            internal static ISirenEntity ParseDocument(JObject obj)
+            internal static ISirenEntity ParseDocument(JToken tok)
             {
+                if(!(tok is JObject))
+                {
+                    throw new FormatException("A Siren Document's top-level JSON Token must be an object");
+                }
+
+                var obj = tok as JObject;
+
                 var document = new SirenEntity();
 
                 document.Title = ParseStringOptional(obj, "title", "An Entity's 'title' must be a string if it exists");

@@ -4,8 +4,8 @@
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Serialization;
     using System;
-    using System.Linq;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
 
     public static partial class SirenJson
@@ -66,7 +66,7 @@
             return Parser.ParseDocument(jobj);
         }
 
-        public static ISirenEntity Parse(JObject jobj)
+        public static ISirenEntity Parse(JToken jobj)
         {   
             return Parser.ParseDocument(jobj);
         }

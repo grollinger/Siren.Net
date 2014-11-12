@@ -14,9 +14,7 @@
         /// <remarks>optional</remarks>
         public ICollection<string> Classes { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         public EmbeddedLink(
             string href,
             ICollection<string> rels
