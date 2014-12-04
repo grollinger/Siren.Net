@@ -1,6 +1,5 @@
 ﻿namespace Siren.Net.Test
 {
-    using System;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
@@ -63,7 +62,7 @@
             // Arrange
             var sample = TestHelper.SPEC_SAMPLE_JSON;
             var sampleDoc = SirenJson.Parse(sample);
-            var content = new StringContent("42");          
+            var content = new StringContent("42");
             var contentStream = new MemoryStream();
             var nonDisposeContentStream = new NonDisposableStream(contentStream);
 
