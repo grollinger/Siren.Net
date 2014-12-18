@@ -67,8 +67,8 @@
 
             var jsonDocument = SirenJson.Unparse(sirenDocument);
 
-            using(var writer = new StreamWriter(writeStream, this.SelectCharacterEncoding(content.Headers)))
-            using(var jsonWriter = new JsonTextWriter(writer))
+            using (var writer = new StreamWriter(writeStream, this.SelectCharacterEncoding(content.Headers)))
+            using (var jsonWriter = new JsonTextWriter(writer))
             {
                 jsonDocument.WriteTo(jsonWriter);
 
@@ -79,6 +79,7 @@
             return Task.FromResult<object>(null);
         }
 
+        [Pure]
         public bool IsSirenDocumentType(Type type)
         {
             return type == typeof(ISirenEntity) ||

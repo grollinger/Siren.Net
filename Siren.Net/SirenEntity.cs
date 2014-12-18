@@ -1,8 +1,6 @@
 ﻿namespace WebApiContrib.Formatting.Siren.Client
 {
     using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Linq;
 
     public class SirenEntity : ISirenEntity
     {

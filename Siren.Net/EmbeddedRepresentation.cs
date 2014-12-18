@@ -1,14 +1,12 @@
 ﻿namespace WebApiContrib.Formatting.Siren.Client
 {
     using System.Collections.Generic;
-    using System.Diagnostics.Contracts;
 
     public class EmbeddedRepresentation : SirenEntity, IEmbeddedRepresentation
     {
         /// <inheritdoc cref="IEmbeddedEntity.Rel"/>
         public ICollection<string> Rel { get; private set; }
 
-        
         public EmbeddedRepresentation(
             ICollection<string> rels
             )

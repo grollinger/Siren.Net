@@ -1,8 +1,6 @@
 ﻿namespace WebApiContrib.Formatting.Siren.Client
 {
-    using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Contracts;
     using System.Net.Http.Headers;
 
     /// <summary>

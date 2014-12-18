@@ -6,19 +6,19 @@
     public class Field
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>required</remarks>
         public string Name { get; private set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>optional</remarks>
         public FieldType Type { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>optional</remarks>
         public object Value { get; set; }

@@ -1,23 +1,19 @@
 ﻿namespace WebApiContrib.Formatting.Siren.Client
 {
-    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json.Serialization;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Reflection;
 
     public static partial class SirenJson
     {
         public static class Parser
-        {          
-
+        {
             internal static ISirenEntity ParseDocument(JToken tok)
             {
-                if(!(tok is JObject))
+                if (!(tok is JObject))
                 {
                     throw new FormatException("A Siren Document's top-level JSON Token must be an object");
                 }
@@ -41,9 +37,9 @@
             public static ICollection<string> ParseClasses(JObject obj)
             {
                 // class
-                // Describes the nature of an entity's content based on the current representation. 
-                // Possible values are implementation-dependent and should be documented. 
-                // MUST be an array of strings. 
+                // Describes the nature of an entity's content based on the current representation.
+                // Possible values are implementation-dependent and should be documented.
+                // MUST be an array of strings.
                 // Optional.
 
                 ICollection<string> result = null;
@@ -70,8 +66,8 @@
             public static IDictionary<string, object> ParseProperties(JObject obj)
             {
                 // properties
-                // A set of key-value pairs that describe the state of an entity. 
-                // In JSON Siren, this is an object such as { "name": "Kevin", "age": 30 }. 
+                // A set of key-value pairs that describe the state of an entity.
+                // In JSON Siren, this is an object such as { "name": "Kevin", "age": 30 }.
                 // Optional.
 
                 IDictionary<string, object> result = new Dictionary<string, object>();
@@ -99,11 +95,11 @@
 
             public static Tuple<ICollection<IEmbeddedLink>, ICollection<IEmbeddedRepresentation>> ParseEntities(JObject obj)
             {
-                // entities 
-                // A collection of related sub-entities. 
-                // If a sub-entity contains an href value, it should be treated as an embedded link. 
-                // Clients may choose to optimistically load embedded links. 
-                // If no href value exists, the sub-entity is an embedded entity representation that contains all the characteristics of a typical entity. 
+                // entities
+                // A collection of related sub-entities.
+                // If a sub-entity contains an href value, it should be treated as an embedded link.
+                // Clients may choose to optimistically load embedded links.
+                // If no href value exists, the sub-entity is an embedded entity representation that contains all the characteristics of a typical entity.
                 // One difference is that a sub-entity MUST contain a rel attribute to describe its relationship to the parent entity.
                 // In JSON Siren, this is represented as an array. Optional.
 
@@ -190,13 +186,12 @@
                 };
             }
 
-
             public static ICollection<Link> ParseLinks(JObject obj)
             {
                 // links
-                // A collection of items that describe navigational links, distinct from entity relationships. 
-                // Link items should contain a rel attribute to describe the relationship and an href attribute to point to the target URI. 
-                // Entities should include a link rel to self. 
+                // A collection of items that describe navigational links, distinct from entity relationships.
+                // Link items should contain a rel attribute to describe the relationship and an href attribute to point to the target URI.
+                // Entities should include a link rel to self.
                 // In JSON Siren, this is represented as "links": [{ "rel": ["self"], "href": "http://api.x.io/orders/1234" }] Optional.
                 var result = new List<Link>();
 
@@ -224,7 +219,7 @@
             public static ICollection<Action> ParseActions(JObject obj)
             {
                 // fields
-                // A collection of field objects, represented in JSON Siren as an array such as { "fields": [{ ... }] }. 
+                // A collection of field objects, represented in JSON Siren as an array such as { "fields": [{ ... }] }.
                 // See Actions. Optional
                 var result = new List<Action>();
 
@@ -307,8 +302,8 @@
                 // type
                 // The input type of the field. This may include any of the following input types specified in HTML5:
                 // hidden, text, search, tel, url, email, password, datetime, date, month, week, time, datetime-local, number, range, color, checkbox, radio, file, image, button
-                // When missing, the default value is text. 
-                // Serialization of these fields will depend on the value of the field's type attribute. 
+                // When missing, the default value is text.
+                // Serialization of these fields will depend on the value of the field's type attribute.
                 // See type under Actions, above. Optional.
                 // value
                 // A value assigned to the field. Optional.
@@ -346,29 +341,29 @@
 
             private static Action ParseAction(JToken token)
             {
-                // Actions 
+                // Actions
                 // show available behaviors an entity exposes.
                 // name
                 // A string that identifies the field to be performed. Required.
                 // class
-                // Describes the nature of an field based on the current representation. 
-                // Possible values are implementation-dependent and should be documented. 
+                // Describes the nature of an field based on the current representation.
+                // Possible values are implementation-dependent and should be documented.
                 // MUST be an array of strings. Optional.
                 // method
-                // An enumerated attribute mapping to a protocol method. 
-                // For HTTP, these values may be GET, PUT, POST, DELETE, or PATCH. 
-                // As new methods are introduced, this list can be extended. 
+                // An enumerated attribute mapping to a protocol method.
+                // For HTTP, these values may be GET, PUT, POST, DELETE, or PATCH.
+                // As new methods are introduced, this list can be extended.
                 // If this attribute is omitted, GET should be assumed. Optional.
                 // href
                 // The URI of the field. Required.
                 // title
                 // Descriptive text about the field. Optional.
                 // type
-                // The encoding type for the request. 
-                // When omitted and the fields attribute exists, the default value is application/x-www-form-urlencoded. 
+                // The encoding type for the request.
+                // When omitted and the fields attribute exists, the default value is application/x-www-form-urlencoded.
                 // Optional.
                 // fields
-                // A collection of fields, expressed as an array of objects in JSON Siren such as { "fields" : [{ ... }] }. 
+                // A collection of fields, expressed as an array of objects in JSON Siren such as { "fields" : [{ ... }] }.
                 // See Fields. Optional.
                 var obj = token as JObject;
 

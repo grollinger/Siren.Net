@@ -28,7 +28,6 @@
         {
             public ContractResolver()
             {
-
             }
 
             protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
@@ -67,7 +66,7 @@
         }
 
         public static ISirenEntity Parse(JToken jobj)
-        {   
+        {
             return Parser.ParseDocument(jobj);
         }
 
